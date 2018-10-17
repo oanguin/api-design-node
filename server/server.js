@@ -8,7 +8,7 @@ var _ = require('lodash');
 
 // express.static will serve everything
 // with in client as a static resource
-// also, it will server the index.html on the
+// also, it will serve the index.html on the
 // root of that directory on a GET to '/'
 app.use(express.static('client'));
 
@@ -22,6 +22,47 @@ var lions = [];
 var id = 0;
 
 // TODO: make the REST routes to perform CRUD on lions
+app.get("/lions", (req,res) =>{
+    res.header(200)
+    res.send(lions)
+    res.end()
+})
+
+app.get("/lions/:id", (req,res)=>{
+    res.header(200)
+    res.send(lions.find(lion => lion.id == app.param("id")))
+    res.end()
+})
+
+app.post("/lions", (req,res) => {
+    res.header(201)
+    var lion = req.body
+    id += 1
+    lion.id = id
+    lions.push(lion)
+    res.send(lion)
+    res.end()
+})
+
+app.put("/lions/:id", (req,res) => {
+    res.header(200)
+    var currentId = req.param("id")
+    var lion = lions.find(lion => lion.id == currentId)
+    lion.name = req.body.name
+    lion.pride = req.body.pride
+    lion.age = req.body.age
+    lion.gender = req.body.gender
+    res.send(lion)
+})
+
+app.delete("/lion/:id", (req,res) =>{
+    res.header(200)
+    var lion = lions.find(lion => lion.id == req.param.id)
+    lions = lions.filter(lion => lion.id != req.param("id"))
+    res.send(lion)
+    res.end()
+
+})
 
 app.listen(3000);
 console.log('on port 3000');
