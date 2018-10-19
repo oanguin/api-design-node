@@ -22,44 +22,63 @@ var lions = [];
 var id = 0;
 
 // TODO: make the REST routes to perform CRUD on lions
+//Replace find methods with lodash as a more convenient method to deal with arrays
 app.get("/lions", (req,res) =>{
     res.header(200)
-    res.send(lions)
+    res.json(lions)
     res.end()
 })
 
 app.get("/lions/:id", (req,res)=>{
     res.header(200)
-    res.send(lions.find(lion => lion.id == app.param("id")))
+    var lion = _.find(lions, {id : req.params.id})
+    //res.send(lions.find(lion => lion.id == app.param("id")))
+    res.json(lion)
     res.end()
 })
 
 app.post("/lions", (req,res) => {
     res.header(201)
     var lion = req.body
-    id += 1
-    lion.id = id
+    id++
+    lion.id = id + ''
     lions.push(lion)
-    res.send(lion)
+    res.json(lion)
     res.end()
 })
 
 app.put("/lions/:id", (req,res) => {
     res.header(200)
-    var currentId = req.param("id")
-    var lion = lions.find(lion => lion.id == currentId)
+    var update = req.body
+    delete update.id //incase idd send just delete it
+    //more efficient way of doing update with loadash
+
+    var lion = _.find(lions, {id : req.params.id})
+    if(!lion){
+        res.send()
+    }else{
+        //Overwrites values with what is on the right with what is on the left.
+        var updatedLion = _.assign(lions[lion],update)
+        res.json(lion)
+    }
+    /*var lion = lions.find(lion => lion.id == currentId)
     lion.name = req.body.name
     lion.pride = req.body.pride
     lion.age = req.body.age
-    lion.gender = req.body.gender
-    res.send(lion)
+    lion.gender = req.body.gender*/
+    res.end()
 })
 
 app.delete("/lion/:id", (req,res) =>{
     res.header(200)
-    var lion = lions.find(lion => lion.id == req.param.id)
-    lions = lions.filter(lion => lion.id != req.param("id"))
-    res.send(lion)
+    //var lion = lions.find(lion => lion.id == req.param.id)
+    var lion = _.find(lions, {id : req.params.id})
+    /*lions = _.remove(lions, (l) => {
+        l.id == lion.id
+    })*/
+    lions.splice(lion,1)
+    //lions = lions.filter(lion => lion.id != req.param("id"))
+    res.json(lion)
     res.end()
 
 })
