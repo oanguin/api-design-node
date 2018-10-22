@@ -18,53 +18,78 @@ var morgan = require('morgan');
 var lions = [];
 var id = 0;
 
-var updateId = function(req, res, next) {
-  // fill this out. this is the route middleware for the ids
+var updateId = function (req, res, next) {
+    // fill this out. this is the route middleware for the ids
+    id += 1
+    req.body.id = id + ''
+    next()
 };
 
 app.use(morgan('dev'))
 app.use(express.static('client'));
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({
+    extended: true
+}));
+
 app.use(bodyParser.json());
 
 
-app.param('id', function(req, res, next, id) {
-  // fill this out to find the lion based off the id
-  // and attach it to req.lion. Rember to call next()
+app.param('id', function (req, res, next, id) {
+    // fill this out to find the lion based off the id
+    // and attach it to req.lion. Rember to call next()
+    let index = _.findIndex(lions, {
+        id: req.params.id
+    })
+    req.lion = lions[index]
+    next()
 });
 
-app.get('/lions', function(req, res){
-  res.json(lions);
+app.get('/lions/error', function (req, res, next) {
+    next(new Error('Lion Fail..'));
 });
 
-app.get('/lions/:id', function(req, res){
-  // use req.lion
-  res.json(lion || {});
+app.get('/lions', function (req, res) {
+    res.json(lions);
 });
 
-app.post('/lions', updateId, function(req, res) {
-  var lion = req.body;
-
-  lions.push(lion);
-
-  res.json(lion);
+app.get('/lions/:id', function (req, res) {
+    // use req.lion
+    let lion = req.lion;
+    res.json(lion || {});
 });
 
 
-app.put('/lions/:id', function(req, res) {
-  var update = req.body;
-  if (update.id) {
-    delete update.id
-  }
+app.post('/lions', updateId, function (req, res) {
+    var lion = req.body;
 
-  var lion = _.findIndex(lions, {id: req.params.id});
-  if (!lions[lion]) {
-    res.send();
-  } else {
-    var updatedLion = _.assign(lions[lion], update);
-    res.json(updatedLion);
-  }
+    lions.push(lion);
+
+    res.json(lion);
 });
+
+
+app.put('/lions/:id', function (req, res) {
+    var update = req.body;
+    if (update.id) {
+        delete update.id
+    }
+
+    var lion = _.findIndex(lions, {
+        id: req.params.id
+    });
+    if (!lions[lion]) {
+        res.send();
+    } else {
+        var updatedLion = _.assign(lions[lion], update);
+        res.json(updatedLion);
+    }
+});
+
+app.use((err, req, res, next) => {
+    console.log(`Error Caught.${err}`);
+    res.statusCode = 503;
+    res.json(`Error: ${err}`)
+})
 
 app.listen(3000);
 console.log('on port 3000');
